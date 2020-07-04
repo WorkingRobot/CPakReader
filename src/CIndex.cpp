@@ -1,18 +1,45 @@
 #include "CIndex.h"
 
-#include <fstream>
+#include "CFileStream.h"
 
-void CIndex::AddPak(const fs::path& FilePath, EErrorCode& ErrorCode)
+CIndex::~CIndex()
 {
-	std::ifstream FileStream(FilePath);
-	if (FileStream.bad()) {
-		ErrorCode = EErrorCode::CANNOT_OPEN;
-		return;
+	for (auto& File : PakFiles) {
+		delete File.Stream;
 	}
-
-
 }
 
-void CIndex::UseKey(const FAESKey& Key, const FGuid& Guid, EErrorCode& ErrorCode)
+bool CIndex::AddPak(const fs::path& FilePath, EErrorCode& ErrorCode)
 {
+	auto& File = PakFiles.emplace_back();
+	
+	File.Stream = new CFileStream(FilePath);
+	File.Stream->seek(-221, CStream::End);
+	*File.Stream >> File.Info;
+	if (!File.Info.Magic) {
+		ErrorCode = EErrorCode::INVALID_PAKINFO;
+		return false;
+	}
+
+	return true;
+}
+
+bool CIndex::AddPak(CStream* InputStream, EErrorCode& ErrorCode)
+{
+	auto& File = PakFiles.emplace_back();
+
+	File.Stream = InputStream;
+	File.Stream->seek(-221, CStream::End);
+	*File.Stream >> File.Info;
+	if (!File.Info.Magic) {
+		ErrorCode = EErrorCode::INVALID_PAKINFO;
+		return false;
+	}
+
+	return true;
+}
+
+bool CIndex::UseKey(const FAESKey& Key, const FGuid& Guid, EErrorCode& ErrorCode)
+{
+	return true;
 }

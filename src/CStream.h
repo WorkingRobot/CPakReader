@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 class CStream {
 public:
     enum SeekPosition : int8_t {

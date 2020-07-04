@@ -5,5 +5,6 @@
 enum class EErrorCode : uint8_t {
 	SUCCESS,
 
-	CANNOT_OPEN
+	CANNOT_OPEN,
+	INVALID_PAKINFO
 };

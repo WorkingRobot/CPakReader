@@ -3,19 +3,28 @@
 #include "EErrorCode.h"
 #include "Objects/FAESKey.h"
 #include "Objects/FGuid.h"
+#include "Objects/FPakInfo.h"
 
 #include <filesystem>
-#include <string>
+#include <vector>
 
 namespace fs = std::filesystem;
 
 class CIndex {
 public:
-	void AddPak(const fs::path& FilePath, EErrorCode& ErrorCode);
+	~CIndex();
 
-	void UseKey(const FAESKey& Key, const FGuid& Guid, EErrorCode& ErrorCode);
+	bool AddPak(const fs::path& FilePath, EErrorCode& ErrorCode);
+	bool AddPak(CStream* InputStream, EErrorCode& ErrorCode);
+
+	bool UseKey(const FAESKey& Key, const FGuid& Guid, EErrorCode& ErrorCode);
 
 
 private:
+	struct PakFile {
+		CStream* Stream;
+		FPakInfo Info;
+	};
 
+	std::vector<PakFile> PakFiles;
 };
