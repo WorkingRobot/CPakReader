@@ -17,13 +17,13 @@ public:
 	bool AddPak(const fs::path& FilePath, EErrorCode& ErrorCode);
 	bool AddPak(CStream* InputStream, EErrorCode& ErrorCode);
 
-	bool UseKey(const FAESKey& Key, const FGuid& Guid, EErrorCode& ErrorCode);
-
+	int UseKey(const FAESKey& Key, const FGuid& Guid, EErrorCode& ErrorCode);
 
 private:
 	struct PakFile {
 		CStream* Stream;
 		FPakInfo Info;
+		bool Initialized;
 	};
 
 	std::vector<PakFile> PakFiles;
