@@ -6,8 +6,6 @@
 #include "Objects/FPakEntry.h"
 
 #include <memory>
-#include <unordered_map>
-#include <variant>
 
 class CPackage {
 public:
@@ -36,6 +34,33 @@ public:
 			else {
 				//printf("File already exists!\n");
 				// This value already exists!
+			}
+		}
+	}
+
+	CPackageFile* GetFile(const char* Extension) {
+		auto AssetType = EAssetTypeHelper::GetType(Extension);
+
+		if (AssetType != EAssetType::UNKNOWN) {
+			auto File = std::find_if(Files.begin(), Files.end(), [&](std::pair<EAssetType, CPackageFile>& File) {
+				return File.first == AssetType;
+			});
+			if (File != Files.end()) {
+				return &File->second;
+			}
+			else {
+				return nullptr;
+			}
+		}
+		else {
+			auto File = std::find_if(OtherFiles.begin(), OtherFiles.end(), [&](std::pair<MapKey, CPackageFile>& File) {
+				return File.first == Extension;
+			});
+			if (File != OtherFiles.end()) {
+				return &File->second;
+			}
+			else {
+				return nullptr;
 			}
 		}
 	}

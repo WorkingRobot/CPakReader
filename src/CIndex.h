@@ -21,8 +21,11 @@ public:
 
 	int UseKey(const FAESKey& Key, const FGuid& Guid, EErrorCode& ErrorCode);
 
+	CPackage* GetPackage(const char* Path);
+	CPackageFile* GetPackageFile(const char* Path);
+
 private:
-	void GetPakEntry(const char* EncodedPtr, EPakVersion Version, FPakEntry& Entry);
+	void GetEncodedPakEntry(const char* EncodedPtr, EPakVersion Version, FPakEntry& Entry);
 
 	std::vector<FPakFile> PakFiles;
 	CFileTree FileTree;

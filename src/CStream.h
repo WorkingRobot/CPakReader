@@ -15,6 +15,7 @@ public:
 
     virtual CStream& read(char* Buf, size_t BufCount) = 0;
     virtual CStream& seek(size_t Position, SeekPosition SeekFrom) = 0;
+    virtual size_t size() = 0;
 
     CStream& operator>>(int8_t& Val) {
         read((char*)&Val, sizeof(Val));

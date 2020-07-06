@@ -5,31 +5,28 @@
 
 class CPackageFile {
 public:
-	CPackageFile(const FPakFile& PakFile, const FPakEntry& PakEntry) : PakFile(PakFile) {
-		Offset = PakEntry.Offset;
-		Size = PakEntry.Size;
-		Encrypted = PakEntry.Flags & FPakEntry::Flag_Encrypted;
-		if (PakEntry.CompressionMethodIndex) {
-			CompInfo = std::make_unique<CompressedInfo>();
-			CompInfo->UncompressedSize = PakEntry.UncompressedSize;
-			CompInfo->CompressionBlocks = PakEntry.CompressionBlocks;
-			CompInfo->CompressionBlockSize = PakEntry.CompressionBlockSize;
-			CompInfo->CompressionMethodIndex = PakEntry.CompressionMethodIndex;
-		}
-	}
+	CPackageFile(const FPakFile& PakFile, const FPakEntry& PakEntry) :
+		PakFile(PakFile),
+		Offset(PakEntry.Offset),
+		Size(PakEntry.Size),
+		StructSize(FPakEntry::GetSerializedSize((EPakVersion)PakFile.Info.Version, PakEntry.CompressionMethodIndex, PakEntry.CompressionBlocks.size())),
+		Encrypted(PakEntry.Flags & FPakEntry::Flag_Encrypted),
+		CompInfo(PakEntry.CompressionMethodIndex ? std::make_unique<CompressedInfo>(PakEntry.UncompressedSize, PakEntry.CompressionBlocks, PakEntry.CompressionBlockSize, PakEntry.CompressionMethodIndex) : nullptr) {}
 
-private:
 	struct CompressedInfo {
-		int64_t UncompressedSize;
-		std::vector<FPakCompressedBlock> CompressionBlocks;
-		uint32_t CompressionBlockSize;
-		uint32_t CompressionMethodIndex;
+		CompressedInfo(int64_t UncompressedSize, const std::vector<FPakCompressedBlock>& CompressionBlocks, uint32_t CompressionBlockSize, uint32_t CompressionMethodIndex) : UncompressedSize(UncompressedSize), CompressionBlocks(CompressionBlocks), CompressionBlockSize(CompressionBlockSize), CompressionMethodIndex(CompressionMethodIndex) {}
+
+		const int64_t UncompressedSize;
+		const std::vector<FPakCompressedBlock> CompressionBlocks;
+		const uint32_t CompressionBlockSize;
+		const uint32_t CompressionMethodIndex;
 	};
 
 	const FPakFile& PakFile;
-	
+
 	int64_t Offset;
 	int32_t Size;
+	uint16_t StructSize;
 	bool Encrypted;
 	std::unique_ptr<CompressedInfo> CompInfo;
 };

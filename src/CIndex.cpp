@@ -4,6 +4,7 @@
 #include "CMemoryStream.h"
 #include "FPakFile.h"
 #include "HAES.h"
+#include "HAlign.h"
 
 CIndex::~CIndex()
 {
@@ -174,7 +175,7 @@ int CIndex::UseKey(const FAESKey& Key, const FGuid& Guid, EErrorCode& ErrorCode)
 				for (auto& DirectoryEntry : DirectoryEntries) {
 					for (auto& HashIndexEntry : DirectoryEntry.Entries) {
 						FPakEntry Entry;
-						GetPakEntry(EncodedPakEntries.get() + HashIndexEntry.Location, (EPakVersion)File.Info.Version, Entry);
+						GetEncodedPakEntry(EncodedPakEntries.get() + HashIndexEntry.Location, (EPakVersion)File.Info.Version, Entry);
 						if (MountPoint.empty()) {
 							FileTree.AddEntry(DirectoryEntry.Directory.c_str(), HashIndexEntry.Filename.c_str(), File, Entry);
 						}
@@ -189,6 +190,7 @@ int CIndex::UseKey(const FAESKey& Key, const FGuid& Guid, EErrorCode& ErrorCode)
 				printf("Old pak versions not implemented yet!\n");
 			}
 
+			File.Key = Key;
 			File.Initialized = true;
 			++LoadedFiles;
 		}
@@ -196,7 +198,17 @@ int CIndex::UseKey(const FAESKey& Key, const FGuid& Guid, EErrorCode& ErrorCode)
 	return LoadedFiles;
 }
 
-void CIndex::GetPakEntry(const char* EncodedPtr, EPakVersion Version, FPakEntry& Entry)
+CPackage* CIndex::GetPackage(const char* Path)
+{
+	return FileTree.GetPackageEntry(Path);
+}
+
+CPackageFile* CIndex::GetPackageFile(const char* Path)
+{
+	return FileTree.GetFileEntry(Path);
+}
+
+void CIndex::GetEncodedPakEntry(const char* EncodedPtr, EPakVersion Version, FPakEntry& Entry)
 {
 	// Grab the big bitfield value:
 	// Bit 31 = Offset 32-bit safe?
@@ -253,6 +265,7 @@ void CIndex::GetPakEntry(const char* EncodedPtr, EPakVersion Version, FPakEntry&
 		Entry.Size = Entry.UncompressedSize;
 	}
 
+	Entry.Flags = 0;
 	if ((Value & (1 << 22)) != 0) {
 		Entry.Flags |= FPakEntry::Flag_Encrypted;
 	}
@@ -269,7 +282,7 @@ void CIndex::GetPakEntry(const char* EncodedPtr, EPakVersion Version, FPakEntry&
 	if (CompressionBlockCount == 1 && !(Entry.Flags & FPakEntry::Flag_Encrypted))
 	{
 		FPakCompressedBlock& CompressedBlock = Entry.CompressionBlocks.emplace_back();
-		CompressedBlock.CompressedStart = BaseOffset + Entry.GetSerializedSize(Version, Entry.CompressionMethodIndex, CompressionBlockCount);
+		CompressedBlock.CompressedStart = BaseOffset + FPakEntry::GetSerializedSize(Version, Entry.CompressionMethodIndex, CompressionBlockCount);
 		CompressedBlock.CompressedEnd = CompressedBlock.CompressedStart + Entry.Size;
 	}
 	else if (CompressionBlockCount > 0)
@@ -277,13 +290,13 @@ void CIndex::GetPakEntry(const char* EncodedPtr, EPakVersion Version, FPakEntry&
 		uint32_t* CompressionBlockSizePtr = (uint32_t*)EncodedPtr;
 		uint64_t CompressedBlockAlignment = (Entry.Flags & FPakEntry::Flag_Encrypted) ? 16 : 1; // 16 = FAES::AESBlockSize
 
-		int64_t CompressedBlockOffset = BaseOffset + Entry.GetSerializedSize(Version, Entry.CompressionMethodIndex, CompressionBlockCount);
+		int64_t CompressedBlockOffset = BaseOffset + FPakEntry::GetSerializedSize(Version, Entry.CompressionMethodIndex, CompressionBlockCount);
 		for (int i = 0; i < CompressionBlockCount; ++i)
 		{
 			FPakCompressedBlock& CompressedBlock = Entry.CompressionBlocks.emplace_back();
 			CompressedBlock.CompressedStart = CompressedBlockOffset;
 			CompressedBlock.CompressedEnd = CompressedBlockOffset + *CompressionBlockSizePtr++;
-			CompressedBlockOffset += (CompressedBlock.CompressedEnd - CompressedBlock.CompressedStart) + CompressedBlockAlignment - 1 & ~(CompressedBlockAlignment - 1);
+			CompressedBlockOffset += HAlign::Align(CompressedBlock.CompressedEnd - CompressedBlock.CompressedStart, CompressedBlockAlignment);
 		}
 	}
 }

@@ -33,6 +33,10 @@ public:
         return *this;
     }
 
+    size_t size() override {
+        return Size;
+    }
+
 private:
     std::shared_ptr<char[]> Buffer;
     size_t Size;
