@@ -76,6 +76,7 @@ public:
 
         if (SaveNum == 0)
         {
+            Val.clear();
             return *this; // blank
         }
 

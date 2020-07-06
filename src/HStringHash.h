@@ -4,6 +4,7 @@
 
 // https://stackoverflow.com/a/28801005
 
+// TODO: Change it to something faster like in https://stackoverflow.com/q/628790
 class HStringHash {
 public:
     template<size_t size>

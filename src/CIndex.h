@@ -1,6 +1,8 @@
 #pragma once
 
+#include "CFileTree.h"
 #include "EErrorCode.h"
+#include "FPakFile.h"
 #include "Objects/FAESKey.h"
 #include "Objects/FGuid.h"
 #include "Objects/FPakInfo.h"
@@ -20,11 +22,8 @@ public:
 	int UseKey(const FAESKey& Key, const FGuid& Guid, EErrorCode& ErrorCode);
 
 private:
-	struct PakFile {
-		CStream* Stream;
-		FPakInfo Info;
-		bool Initialized;
-	};
+	void GetPakEntry(const char* EncodedPtr, EPakVersion Version, FPakEntry& Entry);
 
-	std::vector<PakFile> PakFiles;
+	std::vector<FPakFile> PakFiles;
+	CFileTree FileTree;
 };

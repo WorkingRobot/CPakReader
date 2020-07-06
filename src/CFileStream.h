@@ -9,9 +9,9 @@ namespace fs = std::filesystem;
 
 class CFileStream : public CStream {
 public:
-    CFileStream(const fs::path& FilePath) : FileStream(FilePath) {}
+    CFileStream(const fs::path& FilePath) : FileStream(FilePath, std::ios::in | std::ios::binary) {}
 
-    CFileStream(const char* FilePath) : FileStream(FilePath) {}
+    CFileStream(const char* FilePath) : FileStream(FilePath, std::ios::in | std::ios::binary) {}
 
     CStream& read(char* Buf, size_t BufCount) override {
         FileStream.read(Buf, BufCount);
