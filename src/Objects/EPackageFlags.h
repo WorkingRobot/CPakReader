@@ -73,4 +73,4 @@ enum EPackageFlags : uint32_t
 
 	//< This package is reloading in the cooker, try to avoid getting data we will never need. We won't save this package.
 	PKG_FilterEditorOnly = 0x80000000 //< Package has editor-only data filtered out
-}
+};

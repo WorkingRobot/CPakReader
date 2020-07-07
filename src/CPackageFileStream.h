@@ -9,9 +9,11 @@
 
 #include <libdeflate.h>
 
-class CPackageFileReader : public CStream {
+class CPackageFileStream : public CStream {
 public:
-    CPackageFileReader(const CPackageFile& PackageFile) : PackageFile(PackageFile) {
+    CPackageFileStream(const CPackage& Package, const char* Extension) : CPackageFileStream(((CPackage&)Package).GetFile(Extension)) {}
+
+    CPackageFileStream(const CPackageFile& PackageFile) : PackageFile(PackageFile) {
         CStream* Stream = PackageFile.PakFile.Stream;
 
         if (!PackageFile.CompInfo) { // no compression

@@ -14,7 +14,11 @@ public:
 		CompInfo(PakEntry.CompressionMethodIndex ? std::make_unique<CompressedInfo>(PakEntry.UncompressedSize, PakEntry.CompressionBlocks, PakEntry.CompressionBlockSize, PakEntry.CompressionMethodIndex) : nullptr) {}
 
 	struct CompressedInfo {
-		CompressedInfo(int64_t UncompressedSize, const std::vector<FPakCompressedBlock>& CompressionBlocks, uint32_t CompressionBlockSize, uint32_t CompressionMethodIndex) : UncompressedSize(UncompressedSize), CompressionBlocks(CompressionBlocks), CompressionBlockSize(CompressionBlockSize), CompressionMethodIndex(CompressionMethodIndex) {}
+		CompressedInfo(int64_t UncompressedSize, const std::vector<FPakCompressedBlock>& CompressionBlocks, uint32_t CompressionBlockSize, uint32_t CompressionMethodIndex) :
+			UncompressedSize(UncompressedSize),
+			CompressionBlocks(CompressionBlocks),
+			CompressionBlockSize(CompressionBlockSize),
+			CompressionMethodIndex(CompressionMethodIndex) {}
 
 		const int64_t UncompressedSize;
 		const std::vector<FPakCompressedBlock> CompressionBlocks;
@@ -24,9 +28,9 @@ public:
 
 	const FPakFile& PakFile;
 
-	int64_t Offset;
-	int32_t Size;
-	uint16_t StructSize;
-	bool Encrypted;
-	std::unique_ptr<CompressedInfo> CompInfo;
+	const int64_t Offset;
+	const int32_t Size;
+	const uint16_t StructSize;
+	const bool Encrypted;
+	std::unique_ptr<const CompressedInfo> CompInfo;
 };

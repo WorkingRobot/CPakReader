@@ -198,14 +198,22 @@ int CIndex::UseKey(const FAESKey& Key, const FGuid& Guid, EErrorCode& ErrorCode)
 	return LoadedFiles;
 }
 
-CPackage* CIndex::GetPackage(const char* Path)
-{
+CPackage& CIndex::GetPackage(const char* Path) {
 	return FileTree.GetPackageEntry(Path);
 }
 
-CPackageFile* CIndex::GetPackageFile(const char* Path)
-{
+CPackageFile& CIndex::GetPackageFile(const char* Path) {
 	return FileTree.GetFileEntry(Path);
+}
+
+CPackage* CIndex::TryGetPackage(const char* Path)
+{
+	return FileTree.TryGetPackageEntry(Path);
+}
+
+CPackageFile* CIndex::TryGetPackageFile(const char* Path)
+{
+	return FileTree.TryGetFileEntry(Path);
 }
 
 void CIndex::GetEncodedPakEntry(const char* EncodedPtr, EPakVersion Version, FPakEntry& Entry)

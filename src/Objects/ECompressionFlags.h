@@ -35,4 +35,4 @@ enum ECompressionFlags : uint32_t
 
     // Set of flags that are options are still allowed
     COMPRESS_OptionsFlagsMask = 0xF0
-}
+};

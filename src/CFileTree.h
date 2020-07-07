@@ -38,7 +38,16 @@ public:
 	}
 
 	// PackagePath is without extension
-	CPackage* GetPackageEntry(const char* PackagePath) {
+	CPackage& GetPackageEntry(const char* PackagePath) {
+		return *TryGetPackageEntry(PackagePath);
+	}
+
+	CPackageFile& GetFileEntry(const char* FilePath) {
+		return *TryGetFileEntry(FilePath);
+	}
+
+	// PackagePath is without extension
+	CPackage* TryGetPackageEntry(const char* PackagePath) {
 		auto Separator = strchr(PackagePath, '/');
 		if (Separator) {
 			auto ChildIter = std::find_if(Folders.begin(), Folders.end(), [&](std::pair<MapKey, CFileTree>& Folder) {
@@ -49,7 +58,7 @@ public:
 			}
 			else {
 				auto& ChildTree = ChildIter->second;
-				return ChildTree.GetPackageEntry(Separator + 1);
+				return ChildTree.TryGetPackageEntry(Separator + 1);
 			}
 		}
 		else {
@@ -66,8 +75,7 @@ public:
 		}
 	}
 
-	// This returns a pointer since CPackageFile can't be copied. Inconsistent but it works, I guess.
-	CPackageFile* GetFileEntry(const char* FilePath) {
+	CPackageFile* TryGetFileEntry(const char* FilePath) {
 		auto Separator = strchr(FilePath, '/');
 		if (Separator) {
 			auto ChildIter = std::find_if(Folders.begin(), Folders.end(), [&](std::pair<MapKey, CFileTree>& Folder) {
@@ -78,7 +86,7 @@ public:
 			}
 			else {
 				auto& ChildTree = ChildIter->second;
-				return ChildTree.GetFileEntry(Separator + 1);
+				return ChildTree.TryGetFileEntry(Separator + 1);
 			}
 		}
 		else {
@@ -91,7 +99,7 @@ public:
 			}
 			else {
 				auto& ChildPackage = ChildIter->second;
-				return ChildPackage.GetFile(ExtensionDot + 1);
+				return ChildPackage.TryGetFile(ExtensionDot + 1);
 			}
 		}
 	}

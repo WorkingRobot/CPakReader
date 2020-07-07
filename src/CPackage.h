@@ -38,7 +38,11 @@ public:
 		}
 	}
 
-	CPackageFile* GetFile(const char* Extension) {
+	CPackageFile& GetFile(const char* Extension) {
+		return *TryGetFile(Extension);
+	}
+
+	CPackageFile* TryGetFile(const char* Extension) {
 		auto AssetType = EAssetTypeHelper::GetType(Extension);
 
 		if (AssetType != EAssetType::UNKNOWN) {
