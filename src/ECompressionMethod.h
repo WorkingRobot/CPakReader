@@ -16,9 +16,9 @@ enum class ECompressionMethod : uint8_t {
 class ECompressionMethodHelper {
 public:
 	static ECompressionMethod GetType(const char* extension) {
-		switch (HStringHash::Crc32(extension, strlen(extension), true))
+		switch (HStringHash::Crc32<true>(extension, strlen(extension)))
 		{
-#define CASE(t) case HStringHash::Crc32(#t): return ECompressionMethod::##t
+#define CASE(t) case HStringHash::Crc32CE(#t): return ECompressionMethod::##t
 
 			CASE(NONE);
 			CASE(ZLIB);

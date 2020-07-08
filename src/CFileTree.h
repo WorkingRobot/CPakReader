@@ -6,33 +6,47 @@
 
 class CFileTree {
 public:
+#define SEARCH_VALUES(HashList, NameList, Value, ValueSize) \
+decltype(NameList)::iterator ChildIter = NameList.end(); \
+{ \
+	HStringHash::HashType Hash = HStringHash::Hash(Value, ValueSize); \
+	for (auto i = 0; i != NameList.size(); ++i) { \
+		auto& HashData = HashList[i]; \
+		if (HashData.Hash == Hash) { \
+			if (HashData.NameSize == ValueSize) { \
+				auto& NameData = NameList[i].first; \
+				if (memcmp(NameData.get(), Value, ValueSize) == 0) { \
+					ChildIter = NameList.begin() + i; \
+					break; \
+				} \
+			} \
+		} \
+	} \
+}
+
 	void AddEntry(const char* Directory, const char* FilePath, const FPakFile& PakFile, const FPakEntry& PakEntry) {
 		auto Separator = strchr(Directory, '/');
 		if (Separator) {
-			auto ChildIter = std::find_if(Folders.begin(), Folders.end(), [&](std::pair<MapKey, CFileTree>& Folder) {
-				return Folder.first.IsEqual(Directory, Separator - Directory);
-			});
+			SEARCH_VALUES(FolderHashes, Folders, Directory, Separator - Directory);
 			if (ChildIter == Folders.end()) {
-				auto& ChildTree = Folders.emplace_back(std::make_pair(MapKey(Directory, Separator - Directory), CFileTree())).second;
-				ChildTree.AddEntry(Separator + 1, FilePath, PakFile, PakEntry);
+				auto& ChildTree = Folders.emplace_back(std::make_pair(CreateKey(Directory, Separator - Directory), CFileTree()));
+				FolderHashes.emplace_back(HashData(Directory, Separator - Directory));
+				ChildTree.second.AddEntry(Separator + 1, FilePath, PakFile, PakEntry);
 			}
 			else {
-				auto& ChildTree = ChildIter->second;
-				ChildTree.AddEntry(Separator + 1, FilePath, PakFile, PakEntry);
+				ChildIter->second.AddEntry(Separator + 1, FilePath, PakFile, PakEntry);
 			}
 		}
 		else {
 			auto ExtensionDot = strrchr(FilePath, '.');
-			auto ChildIter = std::find_if(Files.begin(), Files.end(), [&](std::pair<MapKey, CPackage>& File) {
-				return File.first.IsEqual(FilePath, ExtensionDot - FilePath);
-			});
+			SEARCH_VALUES(FileHashes, Files, FilePath, ExtensionDot - FilePath);
 			if (ChildIter == Files.end()) {
-				auto& ChildPackage = Files.emplace_back(std::make_pair(MapKey(FilePath, ExtensionDot - FilePath), CPackage())).second;
-				ChildPackage.AddFile(ExtensionDot + 1, PakFile, PakEntry);
+				auto& ChildPackage = Files.emplace_back(std::make_pair(CreateKey(FilePath, ExtensionDot - FilePath), CPackage()));
+				FileHashes.emplace_back(HashData(FilePath, ExtensionDot - FilePath));
+				ChildPackage.second.AddFile(ExtensionDot + 1, PakFile, PakEntry);
 			}
 			else {
-				auto& ChildPackage = ChildIter->second;
-				ChildPackage.AddFile(ExtensionDot + 1, PakFile, PakEntry);
+				const_cast<CPackage&>(ChildIter->second).AddFile(ExtensionDot + 1, PakFile, PakEntry);
 			}
 		}
 	}
@@ -50,9 +64,7 @@ public:
 	CPackage* TryGetPackageEntry(const char* PackagePath) {
 		auto Separator = strchr(PackagePath, '/');
 		if (Separator) {
-			auto ChildIter = std::find_if(Folders.begin(), Folders.end(), [&](std::pair<MapKey, CFileTree>& Folder) {
-				return Folder.first.IsEqual(PackagePath, Separator - PackagePath);
-			});
+			SEARCH_VALUES(FolderHashes, Folders, PackagePath, Separator - PackagePath);
 			if (ChildIter == Folders.end()) {
 				return nullptr;
 			}
@@ -63,9 +75,7 @@ public:
 		}
 		else {
 			auto FileLen = strlen(PackagePath);
-			auto ChildIter = std::find_if(Files.begin(), Files.end(), [&](std::pair<MapKey, CPackage>& File) {
-				return File.first.IsEqual(PackagePath, FileLen);
-			});
+			SEARCH_VALUES(FileHashes, Files, PackagePath, FileLen);
 			if (ChildIter == Files.end()) {
 				return nullptr;
 			}
@@ -78,9 +88,7 @@ public:
 	CPackageFile* TryGetFileEntry(const char* FilePath) {
 		auto Separator = strchr(FilePath, '/');
 		if (Separator) {
-			auto ChildIter = std::find_if(Folders.begin(), Folders.end(), [&](std::pair<MapKey, CFileTree>& Folder) {
-				return Folder.first.IsEqual(FilePath, Separator - FilePath);
-				});
+			SEARCH_VALUES(FolderHashes, Folders, FilePath, Separator - FilePath);
 			if (ChildIter == Folders.end()) {
 				return nullptr;
 			}
@@ -91,9 +99,7 @@ public:
 		}
 		else {
 			auto ExtensionDot = strrchr(FilePath, '.');
-			auto ChildIter = std::find_if(Files.begin(), Files.end(), [&](std::pair<MapKey, CPackage>& File) {
-				return File.first.IsEqual(FilePath, ExtensionDot - FilePath);
-			});
+			SEARCH_VALUES(FileHashes, Files, FilePath, ExtensionDot - FilePath);
 			if (ChildIter == Files.end()) {
 				return nullptr;
 			}
@@ -105,23 +111,24 @@ public:
 	}
 
 private:
-	struct MapKey {
-		std::unique_ptr<char[]> Name;
-		size_t NameSize;
+	typedef std::unique_ptr<char[]> MapKey;
 
-		MapKey(const char* Name, size_t NameSize) : NameSize(NameSize) {
-			this->Name = std::make_unique<char[]>(NameSize);
-			memcpy(this->Name.get(), Name, NameSize);
-		}
+	MapKey CreateKey(const char* Name, uint32_t NameSize) {
+		MapKey Key = std::make_unique<char[]>(NameSize);
+		memcpy(Key.get(), Name, NameSize);
+		return Key;
+	}
 
-		bool IsEqual(const char* Directory, size_t DirectorySize) {
-			if (NameSize != DirectorySize) {
-				return false;
-			}
-			return !memcmp(Name.get(), Directory, NameSize);
-		}
+	// The reason the name is all split up is for performance, sorry for the code readability
+	struct HashData {
+		HStringHash::HashType Hash;
+		uint32_t NameSize;
+
+		HashData(const char* Name, uint32_t NameSize) : NameSize(NameSize), Hash(HStringHash::Hash(Name, NameSize)) {}
 	};
 
+	std::vector<HashData> FolderHashes;
+	std::vector<HashData> FileHashes;
 	std::vector<std::pair<MapKey, CFileTree>> Folders;
 	std::vector<std::pair<MapKey, CPackage>> Files;
 };

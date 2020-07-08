@@ -46,9 +46,9 @@ enum class EAssetType : uint8_t {
 class EAssetTypeHelper {
 public:
 	static EAssetType GetType(const char* extension) {
-		switch (HStringHash::Crc32(extension, strlen(extension), true))
+		switch (HStringHash::Crc32<true>(extension, strlen(extension)))
 		{
-#define CASE(t) case HStringHash::Crc32(#t): return EAssetType::##t
+#define CASE(t) case HStringHash::Crc32CE(#t): return EAssetType::##t
 
 		CASE(UPROJECT);
 		CASE(UPLUGINMANIFEST);

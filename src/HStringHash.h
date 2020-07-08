@@ -1,22 +1,46 @@
 #pragma once
 
+#define XXH_INLINE_ALL
+// seems like this is the fastest for some reason? too lazy to do too many benchmarks
+#define XXH_VECTOR XXH_AVX2
+
 #include <cstdint>
+#include <xxhash.h>
 
-// https://stackoverflow.com/a/28801005
-
-// TODO: Change it to something faster like in https://stackoverflow.com/q/628790
 class HStringHash {
 public:
+    typedef uint32_t HashType;
+
     template<size_t size>
-    static constexpr uint32_t Crc32(const char(&str)[size], bool insensitive = false) {
-        return Crc32(str, size - 1, insensitive);
+    static __forceinline HashType Hash(const char(&str)[size]) {
+        return Hash(str, size);
     }
 
-    static constexpr uint32_t Crc32(const char* str, size_t size, bool insensitive = false) {
-        return ~crc32_impl(str, size, ~0, insensitive);
+    // Fun fact: changing the size type to uint32_t increases parse time by 300 ms :)
+    static __forceinline HashType Hash(const char* str, size_t size) {
+        // Despite public benchmarks, XXH32 like this is faster than
+        // return XXH64(str, size, 0) & 0xFFFFFFFF;
+        // Note: I'm using 64-bit here and parsing is faster by ~20ms sometimes
+        return XXH32(str, size, 0);
+    }
+
+    template<bool insensitive = false>
+    static __forceinline uint32_t Crc32(const char* str, size_t size) {
+        return Crc32CE<insensitive>(str, size);
+    }
+
+    template<bool insensitive = false, size_t size>
+    static constexpr uint32_t Crc32CE(const char(&str)[size]) {
+        return Crc32CE<insensitive>(str, size - 1);
+    }
+
+    template<bool insensitive = false>
+    static constexpr uint32_t Crc32CE(const char* str, size_t size) {
+        return ~crc32_impl<insensitive>(str, size, ~0);
     }
 
 private:
+    // https://stackoverflow.com/a/28801005
     template <unsigned c, int k = 8>
     struct f : f<((c & 1) ? 0xedb88320 : 0) ^ (c >> 1), k - 1> {};
     template <unsigned c> struct f<c, 0> { enum { value = c }; };
@@ -29,7 +53,7 @@ private:
     #define F(x) G(x) G(x +   4)
     #define G(x) H(x) H(x +   2)
     #define H(x) I(x) I(x +   1)
-    #define I(x) f<x>::value ,
+    #define I(x) f<x>::value,
 
     static constexpr int crc_table[] = { A(0) };
 
@@ -43,9 +67,10 @@ private:
     #undef H
     #undef I
 
-    static constexpr uint32_t crc32_impl(const char* p, size_t len, uint32_t crc, bool insensitive) {
+    template<bool insensitive>
+    static constexpr uint32_t crc32_impl(const char* p, size_t len, uint32_t crc) {
         return len ?
-            crc32_impl(p + 1, len - 1, (crc >> 8) ^ crc_table[(crc & 0xFF) ^ (!insensitive ? *p : (*p >= 'a' && *p <= 'z' ? *p - 0x20 : *p))], insensitive)
+            crc32_impl<insensitive>(p + 1, len - 1, (crc >> 8) ^ crc_table[(crc & 0xFF) ^ (!insensitive ? *p : (*p >= 'a' && *p <= 'z' ? *p - 0x20 : *p))])
             : crc;
     }
 };
