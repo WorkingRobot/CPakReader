@@ -9,4 +9,4 @@ enum ETextFlag : uint8_t
     ConvertedProperty = 1 << 2,
     Immutable = 1 << 3,
     InitializedFromString = 1 << 4 // this ftext was initialized using FromString
-}
+};

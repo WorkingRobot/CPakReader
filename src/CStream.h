@@ -5,6 +5,9 @@
 #include <string>
 #include <vector>
 
+#define LOG_ERR(n, ...) printf(n "\n", __VA_ARGS__)
+#define LOG_WRN(n, ...) printf(n "\n", __VA_ARGS__)
+
 class CStream {
 public:
     enum SeekPosition : int8_t {
@@ -15,7 +18,15 @@ public:
 
     virtual CStream& read(char* Buf, size_t BufCount) = 0;
     virtual CStream& seek(size_t Position, SeekPosition SeekFrom) = 0;
+    virtual size_t tell() = 0;
     virtual size_t size() = 0;
+
+    CStream& operator>>(bool& Val) {
+        int Val32;
+        *this >> Val32;
+        Val = Val32;
+        return *this;
+    }
 
     CStream& operator>>(int8_t& Val) {
         read((char*)&Val, sizeof(Val));
@@ -53,6 +64,16 @@ public:
     }
 
     CStream& operator>>(uint64_t& Val) {
+        read((char*)&Val, sizeof(Val));
+        return *this;
+    }
+
+    CStream& operator>>(float& Val) {
+        read((char*)&Val, sizeof(Val));
+        return *this;
+    }
+
+    CStream& operator>>(double& Val) {
         read((char*)&Val, sizeof(Val));
         return *this;
     }
@@ -98,6 +119,7 @@ public:
         return *this;
     }
 
+    // TArrays, usually
     template<class T>
     CStream& operator>>(std::vector<T>& Val) {
         int SerializeNum;
@@ -107,6 +129,14 @@ public:
             auto& Item = Val.emplace_back();
             *this >> Item;
         }
+        return *this;
+    }
+
+    // Helps with TMaps that are std::vector<std::pair<K, V>>
+    template<class K, class V>
+    CStream& operator>>(std::pair<K, V>& Val) {
+        *this >> Val.first;
+        *this >> Val.second;
         return *this;
     }
 };

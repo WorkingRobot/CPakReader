@@ -17,7 +17,7 @@ public:
         return *this;
     }
 
-    CStream& seek(size_t Position, SeekPosition SeekFrom) override {\
+    CStream& seek(size_t Position, SeekPosition SeekFrom) override {
         switch (SeekFrom)
         {
         case CStream::Begin:
@@ -31,6 +31,10 @@ public:
             break;
         }
         return *this;
+    }
+
+    size_t tell() override {
+        return Position;
     }
 
     size_t size() override {

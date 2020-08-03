@@ -45,10 +45,10 @@ enum class EAssetType : uint8_t {
 
 class EAssetTypeHelper {
 public:
-	static EAssetType GetType(const char* extension) {
-		switch (HStringHash::Crc32<true>(extension, strlen(extension)))
+	static constexpr EAssetType GetType(const char* extension, int extensionSize) {
+		switch (HStringHash::Crc32<true>(extension, extensionSize))
 		{
-#define CASE(t) case HStringHash::Crc32CE(#t): return EAssetType::##t
+#define CASE(t) case HStringHash::Crc32<true>(#t): return EAssetType::##t
 
 		CASE(UPROJECT);
 		CASE(UPLUGINMANIFEST);
@@ -89,6 +89,40 @@ public:
 
 		default:
 			return EAssetType::UNKNOWN;
+		}
+	}
+
+	static constexpr const char* GetString(EAssetType type) {
+		switch (type)
+		{
+		case EAssetType::UPROJECT:			return "uproject";
+		case EAssetType::UPLUGINMANIFEST:	return "upluginmanifest";
+		case EAssetType::UPLUGIN:			return "uplugin";
+		case EAssetType::UASSET:			return "uasset";
+		case EAssetType::UEXP:				return "uexp";
+		case EAssetType::UMAP:				return "umap";
+		case EAssetType::UBULK:				return "ubulk";
+		case EAssetType::UDIC:				return "udic";
+		case EAssetType::USHADERBYTECODE:	return "ushaderbytecode";
+		case EAssetType::UPIPELINECACHE:	return "upipelinecache";
+		case EAssetType::LOCMETA:			return "locmeta";
+		case EAssetType::LOCRES:			return "locres";
+		case EAssetType::PNG:				return "png";
+		case EAssetType::PSD:				return "psd";
+		case EAssetType::UFONT:				return "ufont";
+		case EAssetType::TTF:				return "ttf";
+		case EAssetType::TPS:				return "tps";
+		case EAssetType::ICU:				return "icu";
+		case EAssetType::RES:				return "res";
+		case EAssetType::CFU:				return "cfu";
+		case EAssetType::NRM:				return "nrm";
+		case EAssetType::BRK:				return "brk";
+		case EAssetType::DICT:				return "dict";
+		case EAssetType::BIN:				return "bin";
+		case EAssetType::INI:				return "ini";
+		case EAssetType::PEM:				return "pem";
+		case EAssetType::K:					return "k";
+		default:							return "";
 		}
 	}
 };

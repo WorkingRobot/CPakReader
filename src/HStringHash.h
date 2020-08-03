@@ -25,17 +25,17 @@ public:
     }
 
     template<bool insensitive = false>
-    static __forceinline uint32_t Crc32(const char* str, size_t size) {
-        return Crc32CE<insensitive>(str, size);
+    static __forceinline uint32_t Crc32RT(const char* str) {
+        return Crc32<insensitive>(str, strlen(str));
     }
 
     template<bool insensitive = false, size_t size>
-    static constexpr uint32_t Crc32CE(const char(&str)[size]) {
-        return Crc32CE<insensitive>(str, size - 1);
+    static constexpr __forceinline uint32_t Crc32(const char(&str)[size]) {
+        return Crc32<insensitive>(str, size - 1);
     }
 
     template<bool insensitive = false>
-    static constexpr uint32_t Crc32CE(const char* str, size_t size) {
+    static constexpr __forceinline uint32_t Crc32(const char* str, size_t size) {
         return ~crc32_impl<insensitive>(str, size, ~0);
     }
 

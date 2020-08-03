@@ -7,7 +7,7 @@ CStream& operator>>(CStream& InputStream, FName& Name) {
 	InputStream >> Name.Index;
 	InputStream >> Name.Number;
 
-	((RAssetReader*)&InputStream)->PopulateName(Name);
+	((RAssetReader&)InputStream).PopulateName(Name);
 
 	return InputStream;
 }

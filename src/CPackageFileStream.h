@@ -105,6 +105,10 @@ public:
         return *this;
     }
 
+    size_t tell() override {
+        return MemoryStream->tell();
+    }
+
     size_t size() override {
         return MemoryStream->size();
     }

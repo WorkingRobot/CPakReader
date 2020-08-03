@@ -34,6 +34,10 @@ public:
         return *this;
     }
 
+    size_t tell() override {
+        return std::streamoff(FileStream.tellg());
+    }
+
     size_t size() override {
         return FileSize;
     }

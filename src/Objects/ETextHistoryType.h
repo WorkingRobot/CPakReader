@@ -20,4 +20,4 @@ enum ETextHistoryType : int8_t
 	TextGenerator
 
 	// Add new enum types at the end only! They are serialized by index.
-}
+};

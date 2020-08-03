@@ -10,7 +10,7 @@
 class CPackage {
 public:
 	void AddFile(const char* Extension, const FPakFile& PakFile, const FPakEntry& PakEntry) {
-		auto AssetType = EAssetTypeHelper::GetType(Extension);
+		auto AssetType = EAssetTypeHelper::GetType(Extension, strlen(Extension));
 
 		if (AssetType != EAssetType::UNKNOWN) {
 			auto File = std::find_if(Files.begin(), Files.end(), [&](std::pair<EAssetType, CPackageFile>& File) {
@@ -43,7 +43,7 @@ public:
 	}
 
 	CPackageFile* TryGetFile(const char* Extension) {
-		auto AssetType = EAssetTypeHelper::GetType(Extension);
+		auto AssetType = EAssetTypeHelper::GetType(Extension, strlen(Extension));
 
 		if (AssetType != EAssetType::UNKNOWN) {
 			auto File = std::find_if(Files.begin(), Files.end(), [&](std::pair<EAssetType, CPackageFile>& File) {
@@ -68,6 +68,8 @@ public:
 			}
 		}
 	}
+
+	void Dump(const char* FileName);
 
 private:
 	struct MapKey {

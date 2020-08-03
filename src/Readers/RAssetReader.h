@@ -10,16 +10,21 @@
 #include "../Objects/FPackageFileSummary.h"
 #include "../Objects/FPackageIndex.h"
 
+#include <any>
+
 class RAssetReader : public CStream {
 public:
 	RAssetReader(const CPackage& Package);
 
 	CStream& read(char* Buf, size_t BufCount) override;
 	CStream& seek(size_t Position, SeekPosition SeekFrom) override;
+	size_t tell() override;
 	size_t size() override;
 
     void PopulateName(FName& Name) {
-        Name.Name = &NameMap[Name.Index];
+		if (Name.Index >= 0 && Name.Index < NameMap.size()) {
+			Name.Name = &NameMap[Name.Index];
+		}
     }
 
 	FObjectResource* GetResource(FPackageIndex& Index) {
@@ -38,6 +43,9 @@ public:
 	std::vector<FNameEntrySerialized> NameMap;
 	std::vector<FObjectImport> ImportMap;
 	std::vector<FObjectExport> ExportMap;
+
+	// Not sure what to make this, but std::any seems like the best way to go about it
+	std::vector<std::any> Exports;
 
 private:
 	void ReadUAsset();

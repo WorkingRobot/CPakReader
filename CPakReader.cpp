@@ -5,12 +5,15 @@
 
 #include <chrono>
 #include <optional>
+#include "src/Exports/UObject.h"
+#include "src/Properties/PArray.h"
+#include "src/Properties/PObject.h"
 
 namespace ch = std::chrono;
 
 int main(int argc, char* argv[])
 {
-	FAESKey Key = FAESKey::FromHex("7f851d7e72c27cb0bfd76878e249801373dec3c40707af9a0c93fd7fc5153dbf");
+	FAESKey Key = FAESKey::FromHex("642ca35c21741bb86feb40ce220693b60b04eea685285e0a2d553d4631fd2aec");
 	fs::path DirPath = "J:\\Programs\\FN\\cache\\fn\\FortniteGame\\Content\\Paks\\";
 	if (argc >= 3) {
 		DirPath = argv[1];
@@ -26,7 +29,25 @@ int main(int argc, char* argv[])
 	int paksLoaded = index.UseKey(Key, FGuid::Zero(), code);
 	auto end = ch::steady_clock::now();
 	printf("Loaded %d paks in %.2f ms\n", paksLoaded, (end - start).count() / 1000000.f);
-	RAssetReader reader(index.GetPackage("FortniteGame/Content/Catalog/DisplayAssets/DA_Featured_CID_803_Athena_Commando_F_SharkSuit"));
+	auto& pkg = index.GetPackage("FortniteGame/Content/Athena/Items/Cosmetics/Characters/CID_547_Athena_Commando_F_Meteorwoman");
+	pkg.Dump("versefn");
+	RAssetReader reader(pkg);
+	for (auto& n : reader.Exports) {
+		printf("%s\n", n.type().name());
+		auto obj = std::any_cast<UObject>(&n);
+		for (auto& p : obj->Properties) {
+			printf(" %s: %s\n", p.first.c_str(), p.second.type().name());
+			if (p.first == "ItemVariants") {
+				auto arr = std::any_cast<PArray>(&p.second);
+				printf("  Length: %d\n", arr->Value.size());
+				for (auto& a : arr->Value) {
+					printf("  %s: ", a.type().name());
+					auto o = std::any_cast<PObject>(&a);
+					printf("%s\n", o->Value.GetResource()->ObjectName.c_str());
+				}
+			}
+		}
+	}
 
 	/*
 	auto project = index.GetPackageFile("FortniteGame/Plugins/FortniteGame.upluginmanifest");
