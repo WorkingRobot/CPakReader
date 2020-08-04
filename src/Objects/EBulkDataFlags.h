@@ -51,5 +51,16 @@ enum EBulkDataFlags : uint32_t
     BULKDATA_Size64Bit = 1 << 13,
 
     // Duplicate non-optional payload in optional bulk data.
-    BULKDATA_DuplicateNonOptionalPayload = 1 << 14
-}
+    BULKDATA_DuplicateNonOptionalPayload = 1 << 14,
+
+    // Indicates that an old ID is present in the data, at some point when the DDCs are flushed we can remove this.
+    BULKDATA_BadDataVersion = 1 << 15,
+
+    /* Runtime flags go below! */
+
+    // Assigned at runtime to indicate that the BulkData should be using the IoDispatcher when loading, not filepaths.
+    BULKDATA_UsesIoDispatcher = 1 << 16,
+
+    // Assigned at runtime to indicate that the BulkData allocation is a memory mapped region of a file and not raw data
+    BULKDATA_DataIsMemoryMapped = 1 << 17,
+};

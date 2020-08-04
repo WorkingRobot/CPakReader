@@ -2,6 +2,7 @@
 
 #include "ECompressionMethod.h"
 #include "CMemoryStream.h"
+#include "CPackage.h"
 #include "CPackageFile.h"
 #include "CStream.h"
 #include "HAES.h"

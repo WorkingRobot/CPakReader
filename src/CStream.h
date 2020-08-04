@@ -1,5 +1,7 @@
 #pragma once
 
+//#include "CPackage.h"
+
 #include <codecvt>
 #include <cstdint>
 #include <string>
@@ -20,6 +22,10 @@ public:
     virtual CStream& seek(size_t Position, SeekPosition SeekFrom) = 0;
     virtual size_t tell() = 0;
     virtual size_t size() = 0;
+
+    virtual void* GetParentPackage() {
+        return nullptr;
+    }
 
     CStream& operator>>(bool& Val) {
         int Val32;

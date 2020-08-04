@@ -3,8 +3,11 @@
 #include "../CStream.h"
 #include "../Objects/FName.h"
 #include "../Exports/UObject.h"
+#include "../Exports/UTexture2D.h"
 
-RAssetReader::RAssetReader(const CPackage& Package)
+#include <numeric>
+
+RAssetReader::RAssetReader(const CPackage& Package) : Package(Package)
 {
 	{
 		CPackageFileStream UAssetStream(Package, "uasset");
@@ -41,6 +44,11 @@ size_t RAssetReader::size()
 	return BaseStream->size();
 }
 
+void* RAssetReader::GetParentPackage()
+{
+	return (void*)&Package;
+}
+
 void RAssetReader::ReadUAsset()
 {
 	*this >> Summary;
@@ -75,8 +83,10 @@ void RAssetReader::ReadUAsset()
 
 void RAssetReader::ReadUExp()
 {
+	int64_t BulkDataOffset = std::accumulate(ExportMap.begin(), ExportMap.end(), 0ll, [](int64_t a, const FObjectExport& b) {return a + b.SerialSize; }) + Summary.TotalHeaderSize;
+
 	for (auto& Export : ExportMap) {
-		if (Export.bIsAsset) {
+		if (true) {//Export.bIsAsset) {
 			FName ObjectClassName;
 
 			if (Export.ClassIndex.IsNull()) {
@@ -86,7 +96,7 @@ void RAssetReader::ReadUExp()
 				ObjectClassName = ExportMap[Export.ClassIndex.ToExport()].ObjectName;
 			}
 			else if (Export.ClassIndex.IsImport()) {
-				ObjectClassName = ExportMap[Export.ClassIndex.ToImport()].ObjectName;
+				ObjectClassName = ImportMap[Export.ClassIndex.ToImport()].ObjectName;
 			}
 			else {
 				LOG_ERR("Can't get class name");
@@ -97,20 +107,23 @@ void RAssetReader::ReadUExp()
 			seek(StartingPosition, CStream::Begin);
 
 			auto& ExpObject = Exports.emplace_back();
+			printf("%s\n", ObjectClassName.c_str());
 			switch (HStringHash::Crc32RT(ObjectClassName.c_str()))
 			{
-#define CASE(t) case HStringHash::Crc32(#t): U##t ExpObj; *this >> ExpObj; ExpObject.emplace<U##t>(ExpObj); break;
+#define CASE(t, p) case HStringHash::Crc32(#t): { U##t ExpObj; p; *this >> ExpObj; ExpObject.emplace<U##t>(std::move(ExpObj)); break; }
 
-				//CASE(Texture2D);
+				CASE(Texture2D, ExpObj.DataOffset = BulkDataOffset);
 				//CASE(DataTable);
 
 #undef CASE
 
 				default:
+				{
 					UObject ExpObj;
 					*this >> ExpObj;
-					ExpObject.emplace<UObject>(ExpObj);
+					ExpObject.emplace<UObject>(std::move(ExpObj));
 					break;
+				}
 			}
 
 			if (StartingPosition + Export.SerialSize != tell()) {

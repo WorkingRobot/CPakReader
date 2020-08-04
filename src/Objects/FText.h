@@ -2,9 +2,6 @@
 
 #include "../CStream.h"
 #include "ETextFlag.h"
-#include "ETextHistoryType.h"
-
-#include <any>
 
 struct FTextHistory;
 

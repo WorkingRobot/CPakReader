@@ -8,6 +8,7 @@
 #include "src/Exports/UObject.h"
 #include "src/Properties/PArray.h"
 #include "src/Properties/PObject.h"
+#include "src/Exports/UTexture2D.h"
 
 namespace ch = std::chrono;
 
@@ -29,13 +30,13 @@ int main(int argc, char* argv[])
 	int paksLoaded = index.UseKey(Key, FGuid::Zero(), code);
 	auto end = ch::steady_clock::now();
 	printf("Loaded %d paks in %.2f ms\n", paksLoaded, (end - start).count() / 1000000.f);
-	auto& pkg = index.GetPackage("FortniteGame/Content/Athena/Items/Cosmetics/Characters/CID_547_Athena_Commando_F_Meteorwoman");
+	auto& pkg = index.GetPackage("FortniteGame/Plugins/FortWater/Content/Textures/Swamp_Mask");//"FortniteGame/Content/Athena/Items/Cosmetics/Characters/CID_547_Athena_Commando_F_Meteorwoman");
 	pkg.Dump("versefn");
 	RAssetReader reader(pkg);
 	for (auto& n : reader.Exports) {
 		printf("%s\n", n.type().name());
-		auto obj = std::any_cast<UObject>(&n);
-		for (auto& p : obj->Properties) {
+		auto obj = std::any_cast<UTexture2D>(&n);
+		for (auto& p : obj->Object.Properties) {
 			printf(" %s: %s\n", p.first.c_str(), p.second.type().name());
 			if (p.first == "ItemVariants") {
 				auto arr = std::any_cast<PArray>(&p.second);

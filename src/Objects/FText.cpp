@@ -1,5 +1,6 @@
 #include "FText.h"
 
+#include "ETextHistoryType.h"
 #include "FTextHistory.h"
 
 CStream& operator>>(CStream& InputStream, FText& Text) {

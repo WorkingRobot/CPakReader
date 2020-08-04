@@ -20,6 +20,7 @@ public:
 	CStream& seek(size_t Position, SeekPosition SeekFrom) override;
 	size_t tell() override;
 	size_t size() override;
+	void* GetParentPackage() override;
 
     void PopulateName(FName& Name) {
 		if (Name.Index >= 0 && Name.Index < NameMap.size()) {
@@ -39,6 +40,7 @@ public:
 		}
     }
 
+	const CPackage& Package;
 	FPackageFileSummary Summary;
 	std::vector<FNameEntrySerialized> NameMap;
 	std::vector<FObjectImport> ImportMap;
