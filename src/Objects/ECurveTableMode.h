@@ -7,4 +7,4 @@ enum ECurveTableMode : uint8_t
     Empty,
     SimpleCurves,
     RichCurves
-}
+};

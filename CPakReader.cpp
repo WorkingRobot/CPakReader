@@ -8,7 +8,7 @@
 #include "src/Exports/UObject.h"
 #include "src/Properties/PArray.h"
 #include "src/Properties/PObject.h"
-#include "src/Exports/UTexture2D.h"
+#include "src/Exports/UStringTable.h"
 
 namespace ch = std::chrono;
 
@@ -30,23 +30,14 @@ int main(int argc, char* argv[])
 	int paksLoaded = index.UseKey(Key, FGuid::Zero(), code);
 	auto end = ch::steady_clock::now();
 	printf("Loaded %d paks in %.2f ms\n", paksLoaded, (end - start).count() / 1000000.f);
-	auto& pkg = index.GetPackage("FortniteGame/Plugins/FortWater/Content/Textures/Swamp_Mask");//"FortniteGame/Content/Athena/Items/Cosmetics/Characters/CID_547_Athena_Commando_F_Meteorwoman");
+	auto& pkg = index.GetPackage("FortniteGame/Content/Creative/Devices/RandomNumberGenerator/Device_Floor_RNG");
 	pkg.Dump("versefn");
 	RAssetReader reader(pkg);
 	for (auto& n : reader.Exports) {
 		printf("%s\n", n.type().name());
-		auto obj = std::any_cast<UTexture2D>(&n);
-		for (auto& p : obj->Object.Properties) {
-			printf(" %s: %s\n", p.first.c_str(), p.second.type().name());
-			if (p.first == "ItemVariants") {
-				auto arr = std::any_cast<PArray>(&p.second);
-				printf("  Length: %d\n", arr->Value.size());
-				for (auto& a : arr->Value) {
-					printf("  %s: ", a.type().name());
-					auto o = std::any_cast<PObject>(&a);
-					printf("%s\n", o->Value.GetResource()->ObjectName.c_str());
-				}
-			}
+		auto obj = std::any_cast<UStringTable>(&n);
+		for (auto& p : obj->StringTable.StringTable) {
+			printf(" %s: %s\n", p.first.c_str(), p.second.c_str());
 		}
 	}
 

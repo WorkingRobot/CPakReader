@@ -4,6 +4,9 @@
 #include "../Objects/FName.h"
 #include "../Exports/UObject.h"
 #include "../Exports/UTexture2D.h"
+#include "../Exports/UDataTable.h"
+#include "../Exports/UCurveTable.h"
+#include "../Exports/UStringTable.h"
 
 #include <numeric>
 
@@ -111,7 +114,11 @@ void RAssetReader::ReadUExp()
 #define CASE(t, p) case HStringHash::Crc32(#t): { U##t ExpObj; *this >> ExpObj; ExpObject.emplace<U##t>(std::move(ExpObj)); break; }
 
 				CASE(Texture2D);
-				//CASE(DataTable);
+				CASE(DataTable);
+				CASE(CurveTable);
+				CASE(StringTable);
+				//CASE(FontFace); Not too sure here, aren't fonts just .ufont files?
+				//CASE(SoundWave);
 
 #undef CASE
 
@@ -125,7 +132,7 @@ void RAssetReader::ReadUExp()
 			}
 
 			if (StartingPosition + Export.SerialSize != tell()) {
-				LOG_ERR("Didn't read %s (%s) correctly (at %d, should be {%d}, {%d} behind)", Export.ObjectName.c_str(), ObjectClassName.c_str(), tell(), StartingPosition + Export.SerialSize, StartingPosition + Export.SerialSize - tell());
+				LOG_ERR("Didn't read %s (%s) correctly (at %d, should be %d, %d behind)", Export.ObjectName.c_str(), ObjectClassName.c_str(), tell(), StartingPosition + Export.SerialSize, StartingPosition + Export.SerialSize - tell());
 				seek(StartingPosition + Export.SerialSize, CStream::Begin);
 			}
 		}

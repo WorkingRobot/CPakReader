@@ -25,6 +25,9 @@ public:
 		if (Name.Index >= 0 && Name.Index < NameMap.size()) {
 			Name.Name = &NameMap[Name.Index];
 		}
+		else {
+			Name.Name = nullptr;
+		}
     }
 
 	FObjectResource* GetResource(FPackageIndex& Index) {
