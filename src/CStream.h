@@ -1,6 +1,6 @@
 #pragma once
 
-//#include "CPackage.h"
+#include "HStringHash.h"
 
 #include <codecvt>
 #include <cstdint>
@@ -22,10 +22,6 @@ public:
     virtual CStream& seek(size_t Position, SeekPosition SeekFrom) = 0;
     virtual size_t tell() = 0;
     virtual size_t size() = 0;
-
-    virtual void* GetParentPackage() {
-        return nullptr;
-    }
 
     CStream& operator>>(bool& Val) {
         int Val32;
@@ -144,5 +140,51 @@ public:
         *this >> Val.first;
         *this >> Val.second;
         return *this;
+    }
+
+    constexpr static uint32_t PropStructFallback = HStringHash::Crc32("StructFallback");
+    constexpr static uint32_t PropDataOffset     = HStringHash::Crc32("DataOffset");
+    constexpr static uint32_t PropParentPackage  = HStringHash::Crc32("ParentPackage");
+
+    const size_t* TryGetProperty(size_t Key) const {
+        auto& ret = GetPropertyItr(Key);
+        if (ret != Properties.end()) {
+            return &ret->second;
+        }
+        return nullptr;
+    }
+
+    size_t GetProperty(size_t Key, size_t Default) const {
+        auto ret = TryGetProperty(Key);
+        if (ret) {
+            return *ret;
+        }
+        return Default;
+    }
+
+    void SetProperty(size_t Key, size_t Value) {
+        auto& prop = GetPropertyItr(Key);
+        if (prop != Properties.end()) {
+            Properties.erase(prop);
+        }
+        Properties.emplace_back(Key, Value);
+    }
+
+    bool ClearProperty(size_t Key) {
+        auto& prop = GetPropertyItr(Key);
+        if (prop != Properties.end()) {
+            Properties.erase(prop);
+            return true;
+        }
+        return false;
+    }
+
+private:
+    std::vector<std::pair<size_t, size_t>> Properties;
+
+    decltype(Properties)::const_iterator GetPropertyItr(size_t Key) const {
+        return std::find_if(Properties.begin(), Properties.end(), [Key](const std::pair<size_t, size_t>& Pair) {
+            return Pair.first == Key;
+        });
     }
 };

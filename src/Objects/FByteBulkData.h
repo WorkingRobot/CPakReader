@@ -5,8 +5,6 @@
 #include "EBulkDataFlags.h"
 
 struct FByteBulkData {
-    int64_t DataOffset;
-
 	uint32_t BulkDataFlags;
     std::shared_ptr<char[]> Data;
     
@@ -49,12 +47,12 @@ struct FByteBulkData {
         ByteBulkData.Data = std::shared_ptr<char[]>(new char[BulkDataSize]);
 
         if (ByteBulkData.BulkDataFlags & BULKDATA_OptionalPayload) { // uptnl
-            auto ParentPackage = (CPackage*)InputStream.GetParentPackage();
+            auto ParentPackage = (CPackage*)InputStream.GetProperty(CStream::PropParentPackage, 0);
             if (ParentPackage) {
                 auto PtnlFile = ParentPackage->TryGetFile("uptnl");
                 if (PtnlFile) {
                     CPackageFileStream PtnlStream(*PtnlFile);
-                    PtnlStream.seek(BulkDataOffsetInFile + ByteBulkData.DataOffset, CStream::Begin);
+                    PtnlStream.seek(BulkDataOffsetInFile + InputStream.GetProperty(CStream::PropDataOffset, 0), CStream::Begin);
                     PtnlStream.read(ByteBulkData.Data.get(), BulkDataSize);
                     return InputStream;
                 }
@@ -62,12 +60,12 @@ struct FByteBulkData {
         }
 
         if (ByteBulkData.BulkDataFlags & BULKDATA_PayloadInSeperateFile) { // ubulk
-            auto ParentPackage = (CPackage*)InputStream.GetParentPackage();
+            auto ParentPackage = (CPackage*)InputStream.GetProperty(CStream::PropParentPackage, 0);
             if (ParentPackage) {
                 auto BulkFile = ParentPackage->TryGetFile("ubulk");
                 if (BulkFile) {
                     CPackageFileStream BulkStream(*BulkFile);
-                    BulkStream.seek(BulkDataOffsetInFile + ByteBulkData.DataOffset, CStream::Begin);
+                    BulkStream.seek(BulkDataOffsetInFile + InputStream.GetProperty(CStream::PropDataOffset, 0), CStream::Begin);
                     BulkStream.read(ByteBulkData.Data.get(), BulkDataSize);
                     return InputStream;
                 }

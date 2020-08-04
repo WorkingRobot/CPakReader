@@ -47,7 +47,7 @@ CStream& operator>>(CStream& InputStream, UObject& Object) {
 		}
 	}
 
-	if (!Object.StructFallback) {
+	if (!InputStream.GetProperty(CStream::PropStructFallback, false)) {
 		int HasStructFallbackGuid;
 		InputStream >> HasStructFallbackGuid;
 		if (HasStructFallbackGuid) {

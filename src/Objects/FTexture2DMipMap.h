@@ -4,8 +4,6 @@
 #include "FByteBulkData.h"
 
 struct FTexture2DMipMap {
-	int64_t DataOffset;
-
 	int SizeX;
 	int SizeY;
 	int SizeZ;
@@ -17,7 +15,6 @@ struct FTexture2DMipMap {
 		bool bCooked;
 		InputStream >> bCooked;
 
-		Texture2DMipMap.BulkData.DataOffset = Texture2DMipMap.DataOffset;
 		InputStream >> Texture2DMipMap.BulkData;
 		InputStream >> Texture2DMipMap.SizeX;
 		InputStream >> Texture2DMipMap.SizeY;

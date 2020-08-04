@@ -44,11 +44,6 @@ size_t RAssetReader::size()
 	return BaseStream->size();
 }
 
-void* RAssetReader::GetParentPackage()
-{
-	return (void*)&Package;
-}
-
 void RAssetReader::ReadUAsset()
 {
 	*this >> Summary;
@@ -85,6 +80,9 @@ void RAssetReader::ReadUExp()
 {
 	int64_t BulkDataOffset = std::accumulate(ExportMap.begin(), ExportMap.end(), 0ll, [](int64_t a, const FObjectExport& b) {return a + b.SerialSize; }) + Summary.TotalHeaderSize;
 
+	this->SetProperty(CStream::PropDataOffset, BulkDataOffset);
+	this->SetProperty(CStream::PropParentPackage, (size_t)&Package);
+
 	for (auto& Export : ExportMap) {
 		if (true) {//Export.bIsAsset) {
 			FName ObjectClassName;
@@ -110,9 +108,9 @@ void RAssetReader::ReadUExp()
 			printf("%s\n", ObjectClassName.c_str());
 			switch (HStringHash::Crc32RT(ObjectClassName.c_str()))
 			{
-#define CASE(t, p) case HStringHash::Crc32(#t): { U##t ExpObj; p; *this >> ExpObj; ExpObject.emplace<U##t>(std::move(ExpObj)); break; }
+#define CASE(t, p) case HStringHash::Crc32(#t): { U##t ExpObj; *this >> ExpObj; ExpObject.emplace<U##t>(std::move(ExpObj)); break; }
 
-				CASE(Texture2D, ExpObj.DataOffset = BulkDataOffset);
+				CASE(Texture2D);
 				//CASE(DataTable);
 
 #undef CASE

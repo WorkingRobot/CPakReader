@@ -23,7 +23,6 @@ CStream& operator>>(CStream& InputStream, UTexture2D& Texture2D) {
 			InputStream >> SkipOffset;
 
 			auto& TextureData = Texture2D.PlatformDatas.emplace_back();
-			TextureData.DataOffset = Texture2D.DataOffset;
 			InputStream >> TextureData;
 
 			InputStream >> PixelFormatName;

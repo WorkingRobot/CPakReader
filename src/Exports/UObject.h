@@ -7,8 +7,6 @@
 #include <any>
 
 struct UObject {
-    bool StructFallback = false;
-
     std::vector<std::pair<std::string, std::any>> Properties;
     FGuid Guid;
 

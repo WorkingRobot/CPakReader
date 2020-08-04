@@ -5,8 +5,6 @@
 #include "UObject.h"
 
 struct UTexture2D {
-    int64_t DataOffset;
-
     UObject Object;
     std::vector<FTexturePlatformData> PlatformDatas;
 

@@ -7,8 +7,6 @@
 #include "FVirtualTextureBuiltData.h"
 
 struct FTexturePlatformData {
-    int64_t DataOffset;
-
     int SizeX;
     int SizeY;
     // 31: CubeMap, 30: HasOptData, 29-0: NumSlices
@@ -50,15 +48,7 @@ struct FTexturePlatformData {
             InputStream >> FirstMipToSerialize;
         }
 
-        // TODO: add some property system to CStream PLEASE
-        int MipCount;
-        InputStream >> MipCount;
-        TexturePlatformData.Mips.reserve(MipCount);
-        for (int i = 0; i < MipCount; ++i) {
-            auto& Item = TexturePlatformData.Mips.emplace_back();
-            Item.DataOffset = TexturePlatformData.DataOffset;
-            InputStream >> Item;
-        }
+        InputStream >> TexturePlatformData.Mips;
 
         bool bIsVirtual;
         InputStream >> bIsVirtual;
