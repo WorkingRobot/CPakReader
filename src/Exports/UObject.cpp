@@ -42,13 +42,13 @@ CStream& operator>>(CStream& InputStream, UObject& Object) {
 		Object.AddProperty(Tag, Object.ReadProperty(InputStream, Tag, Tag.Type));
 
 		if (StartingPosition + Tag.Size != InputStream.tell()) {
-			LOG_ERR("Didn't read %s (%s) correctly (at %d, should be {%d}, {%d} behind)", Tag.Type.c_str(), Tag.Name.c_str(), InputStream.tell(), StartingPosition + Tag.Size, StartingPosition + Tag.Size - InputStream.tell());
+			LOG_ERR("Didn't read %s (%s) correctly (at %d, should be %d, %d behind)", Tag.Type.c_str(), Tag.Name.c_str(), InputStream.tell(), StartingPosition + Tag.Size, StartingPosition + Tag.Size - InputStream.tell());
 			InputStream.seek(StartingPosition + Tag.Size, CStream::Begin);
 		}
 	}
 
 	if (!InputStream.GetProperty(CStream::PropStructFallback, false)) {
-		int HasStructFallbackGuid;
+		bool HasStructFallbackGuid;
 		InputStream >> HasStructFallbackGuid;
 		if (HasStructFallbackGuid) {
 			InputStream >> Object.Guid;

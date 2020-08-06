@@ -42,9 +42,10 @@ struct PStruct {
 #undef CASE_STR
 
 		default:
-			InputStream.SetProperty(CStream::PropStructFallback, true);
 			UObject Val;
+			InputStream.PushProperty(CStream::PropStructFallback, true);
 			InputStream >> Val;
+			InputStream.PopProperty(CStream::PropStructFallback);
 			return { Val };
 		}
 	}

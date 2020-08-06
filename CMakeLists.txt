@@ -14,7 +14,8 @@ add_executable (CPakReader
     "src/Exports/UTexture2D.cpp"
     "src/Exports/UDataTable.cpp"
     "src/Exports/UCurveTable.cpp"
-    "src/Exports/UStringTable.cpp")
+    "src/Exports/UStringTable.cpp"
+    "src/Exports/USoundWave.cpp")
 
 set_property(TARGET CPakReader PROPERTY CXX_STANDARD 20)
 

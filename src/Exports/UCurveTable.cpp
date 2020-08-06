@@ -12,12 +12,13 @@ CStream& operator>>(CStream& InputStream, UCurveTable& CurveTable) {
 
 	CurveTable.RowMap.reserve(NumRows);
 
-	InputStream.SetProperty(CStream::PropStructFallback, true);
 	for (int i = 0; i < NumRows; ++i) {
 		FName Key;
 		UObject Value;
 		InputStream >> Key;
+		InputStream.PushProperty(CStream::PropStructFallback, true);
 		InputStream >> Value;
+		InputStream.PopProperty(CStream::PropStructFallback);
 		CurveTable.RowMap.emplace(Key, Value);
 	}
 

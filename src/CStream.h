@@ -4,6 +4,7 @@
 
 #include <codecvt>
 #include <cstdint>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -146,7 +147,7 @@ public:
     constexpr static uint32_t PropDataOffset     = HStringHash::Crc32("DataOffset");
     constexpr static uint32_t PropParentPackage  = HStringHash::Crc32("ParentPackage");
 
-    const size_t* TryGetProperty(size_t Key) const {
+    const std::stack<size_t>* TryGetProperty(size_t Key) {
         auto& ret = GetPropertyItr(Key);
         if (ret != Properties.end()) {
             return &ret->second;
@@ -154,36 +155,43 @@ public:
         return nullptr;
     }
 
-    size_t GetProperty(size_t Key, size_t Default) const {
+    const size_t& GetProperty(uint32_t Key, size_t Default) {
         auto ret = TryGetProperty(Key);
         if (ret) {
-            return *ret;
+            if (!ret->empty()) {
+                return ret->top();
+            }
+            else {
+                return Default;
+            }
         }
         return Default;
     }
 
-    void SetProperty(size_t Key, size_t Value) {
+    void PushProperty(uint32_t Key, size_t Value) {
         auto& prop = GetPropertyItr(Key);
         if (prop != Properties.end()) {
-            Properties.erase(prop);
+            prop->second.push(Value);
         }
-        Properties.emplace_back(Key, Value);
+        else {
+            Properties.emplace_back(Key, std::deque<size_t> { Value });
+        }
     }
 
-    bool ClearProperty(size_t Key) {
+    bool PopProperty(uint32_t Key) {
         auto& prop = GetPropertyItr(Key);
         if (prop != Properties.end()) {
-            Properties.erase(prop);
+            prop->second.pop();
             return true;
         }
         return false;
     }
 
 private:
-    std::vector<std::pair<size_t, size_t>> Properties;
+    std::vector<std::pair<uint32_t, std::stack<size_t>>> Properties;
 
-    decltype(Properties)::const_iterator GetPropertyItr(size_t Key) const {
-        return std::find_if(Properties.begin(), Properties.end(), [Key](const std::pair<size_t, size_t>& Pair) {
+    decltype(Properties)::iterator GetPropertyItr(uint32_t Key) {
+        return std::find_if(Properties.begin(), Properties.end(), [Key](const std::pair<uint32_t, std::stack<size_t>>& Pair) {
             return Pair.first == Key;
         });
     }

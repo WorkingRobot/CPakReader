@@ -7,6 +7,7 @@
 #include "../Exports/UDataTable.h"
 #include "../Exports/UCurveTable.h"
 #include "../Exports/UStringTable.h"
+#include "../Exports/USoundWave.h"
 
 #include <numeric>
 
@@ -83,8 +84,8 @@ void RAssetReader::ReadUExp()
 {
 	int64_t BulkDataOffset = std::accumulate(ExportMap.begin(), ExportMap.end(), 0ll, [](int64_t a, const FObjectExport& b) {return a + b.SerialSize; }) + Summary.TotalHeaderSize;
 
-	this->SetProperty(CStream::PropDataOffset, BulkDataOffset);
-	this->SetProperty(CStream::PropParentPackage, (size_t)&Package);
+	PushProperty(CStream::PropDataOffset, BulkDataOffset);
+	PushProperty(CStream::PropParentPackage, (size_t)&Package);
 
 	for (auto& Export : ExportMap) {
 		if (true) {//Export.bIsAsset) {
@@ -108,7 +109,6 @@ void RAssetReader::ReadUExp()
 			seek(StartingPosition, CStream::Begin);
 
 			auto& ExpObject = Exports.emplace_back();
-			printf("%s\n", ObjectClassName.c_str());
 			switch (HStringHash::Crc32RT(ObjectClassName.c_str()))
 			{
 #define CASE(t, p) case HStringHash::Crc32(#t): { U##t ExpObj; *this >> ExpObj; ExpObject.emplace<U##t>(std::move(ExpObj)); break; }
@@ -117,8 +117,8 @@ void RAssetReader::ReadUExp()
 				CASE(DataTable);
 				CASE(CurveTable);
 				CASE(StringTable);
+				CASE(SoundWave);
 				//CASE(FontFace); Not too sure here, aren't fonts just .ufont files?
-				//CASE(SoundWave);
 
 #undef CASE
 
@@ -137,4 +137,7 @@ void RAssetReader::ReadUExp()
 			}
 		}
 	}
+
+	PopProperty(CStream::PropDataOffset);
+	PopProperty(CStream::PropParentPackage);
 }

@@ -7,12 +7,13 @@ CStream& operator>>(CStream& InputStream, UDataTable& DataTable) {
 	InputStream >> NumRows;
 	DataTable.RowMap.reserve(NumRows);
 
-	InputStream.SetProperty(CStream::PropStructFallback, true);
 	for (int i = 0; i < NumRows; ++i) {
 		FName Key;
 		UObject Value;
 		InputStream >> Key;
+		InputStream.PushProperty(CStream::PropStructFallback, true);
 		InputStream >> Value;
+		InputStream.PopProperty(CStream::PropStructFallback);
 		DataTable.RowMap.emplace(Key, Value);
 	}
 
