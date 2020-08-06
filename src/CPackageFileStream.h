@@ -21,8 +21,8 @@ public:
             Stream->seek(PackageFile.Offset + PackageFile.StructSize, CStream::Begin);
 
             if (PackageFile.Encrypted) {
-                int BufferSize = HAlign::Align(PackageFile.Size, 16);
-                Buffer.reset(new char[BufferSize]); // 16 = FAES::AESBlockSize
+                int BufferSize = HAlign::Align(PackageFile.Size, 16); // 16 = FAES::AESBlockSize
+                Buffer.reset(new char[BufferSize]);
                 Stream->read(Buffer.get(), BufferSize);
                 HAES::DecodeInPlace(PackageFile.PakFile.Key, Buffer.get(), BufferSize);
             }
@@ -33,15 +33,13 @@ public:
             MemoryStream = std::make_unique<CMemoryStream>(Buffer, PackageFile.Size);
         }
         else {
-            // TODO: move this method result into the CPackageFile to save space and compute time when reading
-            auto CompressionMethod = ECompressionMethodHelper::GetType(PackageFile.PakFile.Info.CompressionMethods[PackageFile.CompInfo->CompressionMethodIndex].c_str());
-            if (CompressionMethod == ECompressionMethod::UNKNOWN) {
+            if (PackageFile.CompInfo->CompressionMethod == ECompressionMethod::UNKNOWN) {
                 // unknown method
                 return;
             }
 
             int64_t BytesRead = 0;
-            Buffer.reset(new char[PackageFile.CompInfo->UncompressedSize]); // 16 = FAES::AESBlockSize
+            Buffer.reset(new char[PackageFile.CompInfo->UncompressedSize]);
 
             for (auto& CompressionBlock : PackageFile.CompInfo->CompressionBlocks) {
                 Stream->seek(PackageFile.Offset + CompressionBlock.CompressedStart, CStream::Begin);
@@ -52,7 +50,7 @@ public:
 
                 if (PackageFile.Encrypted) {
                     int BlockBufferSize = HAlign::Align(CompressionBlock.CompressedEnd - CompressionBlock.CompressedStart, (uint64_t)16);
-                    BlockBuffer = std::make_unique<char[]>(BlockBufferSize); // 16 = FAES::AESBlockSize
+                    BlockBuffer = std::make_unique<char[]>(BlockBufferSize);
                     Stream->read(BlockBuffer.get(), BlockBufferSize);
                     HAES::DecodeInPlace(PackageFile.PakFile.Key, BlockBuffer.get(), BlockBufferSize);
                 }
@@ -62,7 +60,7 @@ public:
                     Stream->read(BlockBuffer.get(), BlockBufferSize);
                 }
 
-                switch (CompressionMethod)
+                switch (PackageFile.CompInfo->CompressionMethod)
                 {
                 case ECompressionMethod::ZLIB:
                 {

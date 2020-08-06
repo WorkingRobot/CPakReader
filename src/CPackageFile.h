@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ECompressionMethod.h"
 #include "FPakFile.h"
 #include "Objects/FPakEntry.h"
 
@@ -10,20 +11,29 @@ public:
 		Offset(PakEntry.Offset),
 		Size(PakEntry.Size),
 		StructSize(FPakEntry::GetSerializedSize((EPakVersion)PakFile.Info.Version, PakEntry.CompressionMethodIndex, PakEntry.CompressionBlocks.size())),
-		Encrypted(PakEntry.Flags & FPakEntry::Flag_Encrypted),
-		CompInfo(PakEntry.CompressionMethodIndex ? std::make_unique<CompressedInfo>(PakEntry.UncompressedSize, PakEntry.CompressionBlocks, PakEntry.CompressionBlockSize, PakEntry.CompressionMethodIndex) : nullptr) {}
+		Encrypted(PakEntry.Flags& FPakEntry::Flag_Encrypted),
+		CompInfo(
+			PakEntry.CompressionMethodIndex ?
+				std::make_unique<CompressedInfo>(
+					PakEntry.UncompressedSize,
+					PakEntry.CompressionBlocks,
+					PakEntry.CompressionBlockSize,
+					ECompressionMethodHelper::GetType(PakFile.Info.CompressionMethods[PakEntry.CompressionMethodIndex].c_str())
+				) :
+			nullptr
+		) {}
 
 	struct CompressedInfo {
-		CompressedInfo(int64_t UncompressedSize, const std::vector<FPakCompressedBlock>& CompressionBlocks, uint32_t CompressionBlockSize, uint32_t CompressionMethodIndex) :
+		CompressedInfo(int64_t UncompressedSize, const std::vector<FPakCompressedBlock>& CompressionBlocks, uint32_t CompressionBlockSize, ECompressionMethod CompressionMethod) :
 			UncompressedSize(UncompressedSize),
 			CompressionBlocks(CompressionBlocks),
 			CompressionBlockSize(CompressionBlockSize),
-			CompressionMethodIndex(CompressionMethodIndex) {}
+			CompressionMethod(CompressionMethod) {}
 
 		const int64_t UncompressedSize;
 		const std::vector<FPakCompressedBlock> CompressionBlocks;
 		const uint32_t CompressionBlockSize;
-		const uint32_t CompressionMethodIndex;
+		const ECompressionMethod CompressionMethod;
 	};
 
 	const FPakFile& PakFile;

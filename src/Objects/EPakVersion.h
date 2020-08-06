@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-// Not a real enum, check https://github.com/EpicGames/UnrealEngine/blob/0d7ca47c39ae27a06116bf57b413f44df15d8179/Engine/Source/Runtime/PakFile/Public/IPlatformFilePak.h#L96
+// Not a real enum, check https://github.com/EpicGames/UnrealEngine/blob/master/Engine/Source/Runtime/PakFile/Public/IPlatformFilePak.h#L96
 enum EPakVersion : int32_t
 {
 	PAKVER_INITIAL = 1,
@@ -15,6 +15,7 @@ enum EPakVersion : int32_t
 	PAKVER_FNAME_BASED_COMPRESSION_METHOD = 8, // UE4.22+ - use string instead of enum for compression method
 	PAKVER_FROZEN_INDEX = 9,
 	PAKVER_PATH_HASH_INDEX = 10,
+	PAKVER_FNV64BUGFIX = 11,
 
 	PAKVER_LAST,
 	PAKVER_INVALID,
